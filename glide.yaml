@@ -1,0 +1,4 @@
+package: GoLive
+import:
+- package: github.com/astaxie/beego
+  version: v1.10.0
