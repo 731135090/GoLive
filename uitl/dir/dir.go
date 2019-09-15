@@ -1,10 +1,10 @@
 package dir
 
 import (
-	"fingerprintClient/util/str"
 	"os"
 	"path/filepath"
 	"strings"
+	"GoLive/uitl/str"
 )
 
 /**

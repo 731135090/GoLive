@@ -17,7 +17,7 @@ var (
 	RootDir  string
 )
 
-func Init() {
+func init() {
 	initLogger()
 	initConfig()
 	loadConfigFile()

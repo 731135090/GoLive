@@ -7,6 +7,5 @@ import (
 )
 
 func main() {
-	config.Init()
 	beego.Run(config.ListenIp + ":" + config.HttpPort)
 }
