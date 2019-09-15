@@ -1,4 +1,4 @@
 app_name: GoLive
-listen_ip: 127.0.0.1
+listen_ip: 0.0.0.0
 http_port: 8080
 run_level: dev

@@ -23,8 +23,8 @@
     }
 
     setInterval(function() {
-        ws.send('{"action":"init","msg":"init ws","msg_type":"text","to":"1"}');
-    }, 5000);
+        ws.send('{"action":"ping","msg":"ping","type":"text","to":"1"}');
+    }, 1000);
 </script>
 </body>
 

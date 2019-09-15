@@ -36,12 +36,8 @@ func (c *WebSocketController) Get() {
 		}
 		config.Logger.Info(string(msg))
 
-		pack := packAction.NewWsPack(conn)
-		pack.Parse(string(msg))
-		err = conn.WriteMessage(websocket.TextMessage, []byte("hello client"))
-		if err != nil {
-			config.Logger.Error(err.Error())
-		}
+		pack := packAction.NewWsPack(conn, packAction.WS_PACK_TYPE_CHEAT)
+		pack.Parse(msg)
 	}
 	return
 }
