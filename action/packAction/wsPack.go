@@ -1,6 +1,7 @@
 package packAction
 
 import (
+	"GoLive/config"
 	"GoLive/uitl/json"
 	"GoLive/uitl/timer"
 	"github.com/gorilla/websocket"
@@ -13,11 +14,15 @@ const (
 )
 
 const (
-	WS_PACK_ACTION_PING = "ping"
+	WS_PACK_ACTION_PING  = "ping"
+	WS_PACK_ACTION_SEND  = "send"
+	WS_PACK_ACTION_CLOSE = "close"
 
 	WS_MES_TYPE_TEXT = "text"
 	WS_MES_TYPE_IMG  = "img"
 )
+
+var WsPackChannel = make(chan *WsPack, 1000000)
 
 type Message struct {
 	Action  string `json:"action"` //pack type
@@ -30,36 +35,78 @@ type WsPack struct {
 	form     string //pack form
 	to       string //pack to
 	packType int    //pack type
-	Message
+	data     []byte
 }
 
-func NewWsPack(conn *websocket.Conn, packType int) *WsPack {
+func init() {
+	go func() {
+		for {
+			wsPack, ok := <-WsPackChannel
+			if !ok {
+				break
+			}
+			go wsPack.Parse()
+		}
+	}()
+}
+
+// new ws pack
+func NewWsPack(conn *websocket.Conn, packType int, data []byte) *WsPack {
 	pack := new(WsPack)
 	pack.conn = conn
 	pack.packType = packType
-
-	pack.Time = timer.GetNowDate()
+	pack.data = data
 	return pack
 }
 
-func (p *WsPack) Parse(jsonByte []byte) {
-	jsonObj, err := json.Unmarshal(jsonByte)
+// parse ws pack
+func (p *WsPack) Parse() {
+	jsonObj, err := json.Unmarshal(p.data)
 	if err != nil {
 		return
 	}
 	action := json.GetString(jsonObj, "action")
-	//msg :=json.GetString(jsonObj, "msg")
+	//msg := json.GetString(jsonObj, "msg")
 
-	if action == WS_PACK_ACTION_PING {
+	switch action {
+	case WS_PACK_ACTION_PING:
 		p.PingPack()
+	case WS_PACK_ACTION_CLOSE:
+		p.ClosePack()
 	}
 }
 
-func (p *WsPack) PingPack() {
-	p.Action = WS_PACK_ACTION_PING
-	p.Msg = "pong"
-	msg, err := json.Marshal(p.Message)
-	if err == nil {
-		p.conn.WriteMessage(websocket.TextMessage, msg)
+//ws pack close
+func (p *WsPack) ClosePack() {
+	message := Message{
+		Msg:     "ok",
+		Action:  WS_PACK_ACTION_CLOSE,
+		MsgType: WS_MES_TYPE_TEXT,
+		Time:    timer.GetNowDate(),
 	}
+	msg, err := json.Marshal(message)
+	if err != nil {
+		config.Logger.Error(err.Error())
+	}
+	p.conn.WriteMessage(websocket.TextMessage, msg)
+
+	err = p.conn.Close()
+	if err != nil {
+		config.Logger.Error(err.Error())
+	}
+}
+
+// ws pack ping
+func (p *WsPack) PingPack() {
+	message := Message{
+		Msg:     "ok",
+		Action:  WS_PACK_ACTION_PING,
+		MsgType: WS_MES_TYPE_TEXT,
+		Time:    timer.GetNowDate(),
+	}
+	msg, err := json.Marshal(message)
+	if err != nil {
+		config.Logger.Error(err.Error())
+	}
+	p.conn.WriteMessage(websocket.TextMessage, msg)
 }

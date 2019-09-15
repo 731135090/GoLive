@@ -29,15 +29,13 @@ func (c *WebSocketController) Get() {
 	defer conn.Close()
 
 	for {
-		_, msg, err := conn.ReadMessage()
+		_, data, err := conn.ReadMessage()
 		if err != nil {
 			config.Logger.Error(err.Error())
 			continue
 		}
-		config.Logger.Info(string(msg))
-
-		pack := packAction.NewWsPack(conn, packAction.WS_PACK_TYPE_CHEAT)
-		pack.Parse(msg)
+		config.Logger.Info(string(data))
+		packAction.WsPackChannel <- packAction.NewWsPack(conn, packAction.WS_PACK_TYPE_CHEAT, data)
 	}
 	return
 }
