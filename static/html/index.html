@@ -11,7 +11,7 @@
 <p id="output"></p>
 
 <script>
-    ws = new WebSocket("ws://127.0.0.1:8080/ws/cheat")
+    var ws = new WebSocket("ws://127.0.0.1:8080/ws/cheat")
 
     ws.onopen = function() {
         console.log('Connected')
@@ -23,7 +23,7 @@
     }
 
     setInterval(function() {
-        ws.send('Hello, Server!');
+        ws.send('{"action":"init","msg":"init ws","msg_type":"text","to":"1"}');
     }, 5000);
 </script>
 </body>
