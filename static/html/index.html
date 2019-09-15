@@ -7,19 +7,11 @@
 </head>
 
 <body>
+<h3>你好</h3>
 <p id="output"></p>
 
 <script>
-    var loc = window.location;
-    var uri = 'ws:';
-
-    if (loc.protocol === 'https:') {
-        uri = 'wss:';
-    }
-    uri += '//' + loc.host;
-    uri += loc.pathname + 'ws';
-
-    ws = new WebSocket(uri)
+    ws = new WebSocket("ws://127.0.0.1:8080/ws/cheat")
 
     ws.onopen = function() {
         console.log('Connected')
@@ -32,7 +24,7 @@
 
     setInterval(function() {
         ws.send('Hello, Server!');
-    }, 1000);
+    }, 5000);
 </script>
 </body>
 

@@ -1,5 +1,5 @@
-hash: c3e159fbc3f65c3430a66653569d6c6212038fca1b0ef87bc41e8456731ea9df
-updated: 2019-09-15T10:07:40.908296+08:00
+hash: c6456013832a482efdd6a061ba93d1df5523c061d18322345b70d19812eb8cfd
+updated: 2019-09-15T15:46:45.343409+08:00
 imports:
 - name: github.com/astaxie/beego
   version: a09bafbf2ab483742b17bb352f95dbc0a597e720
@@ -15,6 +15,8 @@ imports:
   - utils
 - name: github.com/beego/goyaml2
   version: 5545475820ddd4db3f90a4900d44b65d077d702d
+- name: github.com/bitly/go-simplejson
+  version: aabad6e819789e569bd6aabf444c935aa9ba1e44
 - name: github.com/gorilla/websocket
   version: 66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d
 - name: github.com/wendal/errors

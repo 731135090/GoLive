@@ -2,6 +2,7 @@ package config
 
 import (
 	"GoLive/uitl/dir"
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/config"
 	_ "github.com/astaxie/beego/config/yaml"
 	"github.com/astaxie/beego/logs"
@@ -28,6 +29,9 @@ func initConfig() {
 	if RunLevel != RUN_LEVEL_RELEASE {
 		Logger.Info("RootPath: %s\n", RootDir)
 	}
+
+	//set static path
+	beego.SetStaticPath("/static", "static")
 }
 func initLogger() {
 	Logger = logs.NewLogger()
