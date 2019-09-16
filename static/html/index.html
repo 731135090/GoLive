@@ -4,27 +4,89 @@
 <head>
     <meta charset="utf-8">
     <title>WebSocket</title>
+    <script src="../js/vue.dev.js"></script>
+    <script src="../css/style.css"></script>
 </head>
 
 <body>
-<h3>你好</h3>
-<p id="output"></p>
+<div id="app">
+    <div class="main">
+        <p v-for="message in messages">
+            <mark>{{message.name}} {{message.time}}</mark> {{message.content}}
+        </p>
+    </div>
+    <div>
+        <div>
+            <textarea rows="3" cols="20" id="content">
+            </textarea>
+        </div>
+        <div><button type="button" id="sendBtn">Send</button></div>
+    </div>
+</div>
 
 <script>
-    var ws = new WebSocket("ws://127.0.0.1:8080/ws/cheat")
 
-    ws.onopen = function() {
-        console.log('Connected')
-    }
+    var app = new Vue({
+        el: '#app',
+        data: {
+            wsUrl: "ws://127.0.0.1:8080/ws/cheat",
+            ws: {},
+            messages: [],
+            keepAlive: false,
 
-    ws.onmessage = function(evt) {
-        var out = document.getElementById('output');
-        out.innerHTML += evt.data + '<br>';
-    }
+        },
+        created: function () {
+            this.ws = new WebSocket("ws://127.0.0.1:8080/ws/cheat");
+            this.ws.onopen = this.open;
+            this.ws.onmessage = this.onmessage;
+            this.ws.onclose = this.onclose;
+            this.ws.onerror = this.onerror;
+            this.ping();
+        },
+        methods: {
+            open: function () {
+                this.messages.push({
+                    "type": "text",
+                    "name": "System",
+                    "content": "Join the chat!",
+                    "time": "2019-09-16 20:00:00",
+                });
+            },
+            onmessage: function (event) {
+                const data = JSON.parse(event.data);
+                let message = "";
+                switch (data.action) {
+                    case "ping":
+                        message = "ping response";
+                        break;
+                    case "message":
+                        message = data.msg;
+                        break;
+                }
+                if (message !== "") {
+                    this.messages.push({
+                        "type": "text",
+                        "name": "Server",
+                        "content": message,
+                        "time": data.time,
+                    });
+                }
+            },
+            ping: function () {
+                const app = this;
+                setInterval(function() {
+                    app.ws.send('{"action":"ping","msg":"ping","type":"text","to":"1"}');
+                }, 1000);
+            },
+            onclose: function (event) {
+                
+            },
+            onerror: function (event) {
+                
+            }
+        }
+    });
 
-    setInterval(function() {
-        ws.send('{"action":"close","msg":"ping","type":"text","to":"1"}');
-    }, 1000);
 </script>
 </body>
 
