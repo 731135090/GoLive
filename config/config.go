@@ -6,9 +6,12 @@ import (
 	"github.com/astaxie/beego/config"
 	_ "github.com/astaxie/beego/config/yaml"
 	"github.com/astaxie/beego/logs"
+	"sync"
 )
 
 var Logger *logs.BeeLogger
+
+var Gwg = sync.WaitGroup{}
 
 var (
 	AppName  string

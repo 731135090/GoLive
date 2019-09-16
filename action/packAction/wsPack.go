@@ -39,7 +39,9 @@ type WsPack struct {
 }
 
 func init() {
+	config.Gwg.Add(1)
 	go func() {
+		defer config.Gwg.Done()
 		for {
 			wsPack, ok := <-WsPackChannel
 			if !ok {

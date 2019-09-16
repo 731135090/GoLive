@@ -8,4 +8,5 @@ import (
 
 func main() {
 	beego.Run(config.ListenIp + ":" + config.HttpPort)
+	config.Gwg.Wait()
 }
