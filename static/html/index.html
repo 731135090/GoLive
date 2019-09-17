@@ -17,10 +17,9 @@
     </div>
     <div>
         <div>
-            <textarea rows="3" cols="20" id="content">
-            </textarea>
+            <textarea rows="3" cols="20" id="content" v-model="content"></textarea>
         </div>
-        <div><button type="button" id="sendBtn">Send</button></div>
+        <div><button type="button" @click="send">Send</button></div>
     </div>
 </div>
 
@@ -32,11 +31,12 @@
             wsUrl: "ws://127.0.0.1:8080/ws/cheat",
             ws: {},
             messages: [],
+            preMessage: {},
             keepAlive: false,
-
+            content: ''
         },
         created: function () {
-            this.ws = new WebSocket("ws://127.0.0.1:8080/ws/cheat");
+            this.ws = new WebSocket(this.wsUrl);
             this.ws.onopen = this.open;
             this.ws.onmessage = this.onmessage;
             this.ws.onclose = this.onclose;
@@ -45,6 +45,7 @@
         },
         methods: {
             open: function () {
+                // todo login message
                 this.messages.push({
                     "type": "text",
                     "name": "System",
@@ -57,9 +58,9 @@
                 let message = "";
                 switch (data.action) {
                     case "ping":
-                        message = "ping response";
+                        // todo other
                         break;
-                    case "message":
+                    case "msg":
                         message = data.msg;
                         break;
                 }
@@ -75,14 +76,29 @@
             ping: function () {
                 const app = this;
                 setInterval(function() {
-                    app.ws.send('{"action":"ping","msg":"ping","type":"text","to":"1"}');
-                }, 1000);
+                    //app.ws.send('{"action":"ping","msg":"ping","type":"text","to":"1"}');
+                }, 10000);
             },
             onclose: function (event) {
-                
+                console.log(event);
             },
             onerror: function (event) {
-                
+                console.log(event);
+            },
+            send: function () {
+                if (this.content.trim() === '') {
+                    alert("聊天内容不能为空");
+                    return;
+                }
+                const message = {
+                    action: "msg",
+                    msg: this.content,
+                    type: "text",
+                    version: Date.now()
+                };
+                this.ws.send(JSON.stringify(message));
+                // todo 后续增加 ack 验证
+                this.content = "";
             }
         }
     });

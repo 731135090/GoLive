@@ -4,6 +4,7 @@ import (
 	"GoLive/config"
 	"GoLive/uitl/json"
 	"GoLive/uitl/timer"
+	"github.com/bitly/go-simplejson"
 	"github.com/gorilla/websocket"
 )
 
@@ -15,8 +16,12 @@ const (
 
 const (
 	WS_PACK_ACTION_PING  = "ping"
+	WS_PACK_ACTION_LOGIN = "login"
 	WS_PACK_ACTION_SEND  = "send"
 	WS_PACK_ACTION_CLOSE = "close"
+	WS_PACK_ACTION_MSG   = "msg"
+	WS_PACK_ACTION_IMG   = "img"
+	WS_PACK_ACTION_ICON  = "icon"
 
 	WS_MES_TYPE_TEXT = "text"
 	WS_MES_TYPE_IMG  = "img"
@@ -25,10 +30,10 @@ const (
 var WsPackChannel = make(chan *WsPack, 1000000)
 
 type Message struct {
-	Action  string `json:"action"` //pack type
-	Msg     string `json:"msg"`    //message
-	MsgType string `json:"type"`   //msg type
-	Time    string `json:"time"`   //server time
+	Action  string `json:"action"`  //pack type
+	Msg     string `json:"msg"`     //message
+	MsgType string `json:"type"`    //msg type
+	Time    string `json:"time"`    //server time
 }
 type WsPack struct {
 	conn     *websocket.Conn
@@ -75,6 +80,8 @@ func (p *WsPack) Parse() {
 		p.PingPack()
 	case WS_PACK_ACTION_CLOSE:
 		p.ClosePack()
+	case WS_PACK_ACTION_MSG:
+		p.MsgPack(jsonObj)
 	}
 }
 
@@ -103,6 +110,21 @@ func (p *WsPack) PingPack() {
 	message := Message{
 		Msg:     "ok",
 		Action:  WS_PACK_ACTION_PING,
+		MsgType: WS_MES_TYPE_TEXT,
+		Time:    timer.GetNowDate(),
+	}
+	msg, err := json.Marshal(message)
+	if err != nil {
+		config.Logger.Error(err.Error())
+	}
+	p.conn.WriteMessage(websocket.TextMessage, msg)
+}
+
+func (p *WsPack) MsgPack(data *simplejson.Json) {
+	content := json.GetString(data, "msg")
+	message := Message{
+		Msg:     content,
+		Action:  WS_PACK_ACTION_MSG,
 		MsgType: WS_MES_TYPE_TEXT,
 		Time:    timer.GetNowDate(),
 	}
