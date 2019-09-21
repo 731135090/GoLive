@@ -1,6 +1,7 @@
 package packAction
 
 import (
+	"GoLive/action/connectAction"
 	"GoLive/config"
 	"GoLive/uitl/json"
 	"GoLive/uitl/timer"
@@ -8,34 +9,16 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const (
-	WS_PACK_TYPE_CHEAT    = iota //聊天消息
-	WS_PACK_TYPE_SYSTEM          //系统消息
-	WS_PACK_TYPE_CUSTOMER        //客服消息
-)
-
-const (
-	WS_PACK_ACTION_INIT  = "init"	//初始化聊天信息
-	WS_PACK_ACTION_PING  = "ping"	//心跳包
-	WS_PACK_ACTION_CLOSE = "close"	//关闭包
-	WS_PACK_ACTION_MSG   = "msg"	//信息包
-	WS_PACK_ACTION_ICON  = "icon"
-
-	WS_MES_TYPE_TEXT = "text"	//信息类型：文字
-	WS_MES_TYPE_IMG  = "img"	//信息类型：图片
-	WS_MES_TYPE_VOICE = "voice"	//信息类型：声音
-)
-
 var WsPackChannel = make(chan *WsPack, 1000000)
 
 type Message struct {
-	Action  string `json:"action"`  //pack type
-	Msg     string `json:"msg"`     //message
-	MsgType string `json:"type"`    //msg type
-	Time    string `json:"time"`    //server time
+	Action  string `json:"action"` //pack type
+	Msg     string `json:"msg"`    //message
+	MsgType string `json:"type"`   //msg type
+	Time    string `json:"time"`   //server time
 }
 type WsPack struct {
-	conn     *websocket.Conn
+	conn     *connectAction.WsConnect
 	form     string //pack form
 	to       string //pack to
 	packType int    //pack type
@@ -59,7 +42,7 @@ func init() {
 // new ws pack
 func NewWsPack(conn *websocket.Conn, packType int, data []byte) *WsPack {
 	pack := new(WsPack)
-	pack.conn = conn
+	pack.conn = connectAction.NewWsConn(conn)
 	pack.packType = packType
 	pack.data = data
 	return pack
@@ -75,61 +58,72 @@ func (p *WsPack) Parse() {
 	//msg := json.GetString(jsonObj, "msg")
 
 	switch action {
-	case WS_PACK_ACTION_PING:
+	case config.WS_PACK_ACTION_INIT:
+		p.InitPack()
+	case config.WS_PACK_ACTION_PING:
 		p.PingPack()
-	case WS_PACK_ACTION_CLOSE:
+	case config.WS_PACK_ACTION_CLOSE:
 		p.ClosePack()
-	case WS_PACK_ACTION_MSG:
+	case config.WS_PACK_ACTION_MSG:
 		p.MsgPack(jsonObj)
 	}
+}
+
+func (p *WsPack) InitPack() {
+	if connectAction.WsConnMap[config.WS_CONN_TYPE_CHEAT][p.form] == nil {
+		connectAction.WsConnMap[config.WS_CONN_TYPE_CHEAT][p.form] = make(map[*websocket.Conn]bool)
+	}
+	connectAction.WsConnMap[config.WS_CONN_TYPE_CHEAT][p.form][p.conn.WsConn] = true
 }
 
 //ws pack close
 func (p *WsPack) ClosePack() {
 	message := Message{
 		Msg:     "ok",
-		Action:  WS_PACK_ACTION_CLOSE,
-		MsgType: WS_MES_TYPE_TEXT,
+		Action:  config.WS_PACK_ACTION_CLOSE,
+		MsgType: config.WS_MES_TYPE_TEXT,
 		Time:    timer.GetNowDate(),
 	}
 	msg, err := json.Marshal(message)
 	if err != nil {
 		config.Logger.Error(err.Error())
 	}
-	p.conn.WriteMessage(websocket.TextMessage, msg)
+	p.conn.WsConn.WriteMessage(websocket.TextMessage, msg)
 
-	err = p.conn.Close()
+	err = p.conn.WsConn.Close()
 	if err != nil {
 		config.Logger.Error(err.Error())
 	}
+
+	connectAction.CloseWsConn(p.conn.WsConn, config.WS_CONN_TYPE_CHEAT, p.form)
 }
 
 // ws pack ping
 func (p *WsPack) PingPack() {
 	message := Message{
 		Msg:     "ok",
-		Action:  WS_PACK_ACTION_PING,
-		MsgType: WS_MES_TYPE_TEXT,
+		Action:  config.WS_PACK_ACTION_PING,
+		MsgType: config.WS_MES_TYPE_TEXT,
 		Time:    timer.GetNowDate(),
 	}
 	msg, err := json.Marshal(message)
 	if err != nil {
 		config.Logger.Error(err.Error())
 	}
-	p.conn.WriteMessage(websocket.TextMessage, msg)
+	p.conn.WsConn.WriteMessage(websocket.TextMessage, msg)
 }
 
 func (p *WsPack) MsgPack(data *simplejson.Json) {
 	content := json.GetString(data, "msg")
 	message := Message{
 		Msg:     content,
-		Action:  WS_PACK_ACTION_MSG,
-		MsgType: WS_MES_TYPE_TEXT,
+		Action:  config.WS_PACK_ACTION_MSG,
+		MsgType: config.WS_MES_TYPE_TEXT,
 		Time:    timer.GetNowDate(),
 	}
 	msg, err := json.Marshal(message)
 	if err != nil {
 		config.Logger.Error(err.Error())
 	}
-	p.conn.WriteMessage(websocket.TextMessage, msg)
+	p.conn.WsConn.WriteMessage(websocket.TextMessage, msg)
 }

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"GoLive/action/connectAction"
 	"GoLive/action/packAction"
 	"GoLive/config"
 	"github.com/gorilla/websocket"
@@ -27,6 +28,7 @@ func (c *WebSocketController) Get() {
 		return
 	}
 	defer conn.Close()
+	defer connectAction.CloseWsConn(conn, config.WS_CONN_TYPE_CHEAT, "")
 
 	for {
 		_, data, err := conn.ReadMessage()
@@ -35,7 +37,7 @@ func (c *WebSocketController) Get() {
 			continue
 		}
 		config.Logger.Info(string(data))
-		packAction.WsPackChannel <- packAction.NewWsPack(conn, packAction.WS_PACK_TYPE_CHEAT, data)
+		packAction.WsPackChannel <- packAction.NewWsPack(conn, config.WS_CONN_TYPE_CHEAT, data)
 	}
 	return
 }
