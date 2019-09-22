@@ -17,7 +17,6 @@ var WsConnMap = make(map[int]map[string]map[*websocket.Conn]bool)
 
 func init() {
 	WsConnMap[config.WS_CONN_TYPE_CHEAT] = make(map[string]map[*websocket.Conn]bool)
-	WsConnMap[config.WS_CONN_TYPE_SYSTEM] = make(map[string]map[*websocket.Conn]bool)
 	WsConnMap[config.WS_CONN_TYPE_CUSTOMER] = make(map[string]map[*websocket.Conn]bool)
 }
 
