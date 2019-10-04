@@ -18,7 +18,17 @@ type WebSocketController struct {
 	BaseController
 }
 
+type AdminWsController struct {
+	BaseController
+}
+
 func (c *WebSocketController) Get() {
+	access(&c.BaseController, config.WS_CONN_TYPE_USER)
+}
+func (c *AdminWsController) Get() {
+	access(&c.BaseController, config.WS_CONN_TYPE_USER)
+}
+func access(c *BaseController, connType int) {
 	header := http.Header{}
 	header.Add("Server", "tomcat")
 
@@ -28,7 +38,7 @@ func (c *WebSocketController) Get() {
 		return
 	}
 	defer conn.Close()
-	defer connectAction.CloseWsConn(conn, config.WS_CONN_TYPE_CHEAT, "")
+	defer connectAction.CloseWsConn(conn, connType, "")
 
 	for {
 		_, data, err := conn.ReadMessage()
@@ -37,7 +47,7 @@ func (c *WebSocketController) Get() {
 			continue
 		}
 		config.Logger.Info(string(data))
-		packAction.WsPackChannel <- packAction.NewWsPack(conn, config.WS_CONN_TYPE_CHEAT, data)
+		packAction.WsPackChannel <- packAction.NewWsPack(conn, connType, data)
 	}
 	return
 }

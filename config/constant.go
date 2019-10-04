@@ -9,7 +9,7 @@ const (
 )
 
 const (
-	WS_CONN_TYPE_CHEAT    = iota //用户链接
+	WS_CONN_TYPE_USER    = iota //用户链接
 	WS_CONN_TYPE_CUSTOMER        //客服链接
 )
 

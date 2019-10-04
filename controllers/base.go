@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"GoLive/config"
 	"github.com/astaxie/beego"
 )
 
@@ -9,7 +10,6 @@ type BaseController struct {
 }
 
 func (c *BaseController) Get() {
-
 	defer c.Head()
 	c.Data["Website"] = "beego.me"
 	c.Data["Email"] = "astaxie@gmail.com"
@@ -17,5 +17,7 @@ func (c *BaseController) Get() {
 }
 
 func (c *BaseController) Head() {
-	c.Ctx.Output.Header("Access-Control-Allow-Origin", "*")
+	if config.RunLevel != config.RUN_LEVEL_RELEASE {
+		c.Ctx.Output.Header("Access-Control-Allow-Origin", "*")
+	}
 }

@@ -70,10 +70,10 @@ func (p *WsPack) Parse() {
 }
 
 func (p *WsPack) InitPack() {
-	if connectAction.WsConnMap[config.WS_CONN_TYPE_CHEAT][p.form] == nil {
-		connectAction.WsConnMap[config.WS_CONN_TYPE_CHEAT][p.form] = make(map[*websocket.Conn]bool)
+	if connectAction.WsConnMap[config.WS_CONN_TYPE_USER][p.form] == nil {
+		connectAction.WsConnMap[config.WS_CONN_TYPE_USER][p.form] = make(map[*websocket.Conn]bool)
 	}
-	connectAction.WsConnMap[config.WS_CONN_TYPE_CHEAT][p.form][p.conn.WsConn] = true
+	connectAction.WsConnMap[config.WS_CONN_TYPE_USER][p.form][p.conn.WsConn] = true
 }
 
 //ws pack close
@@ -95,7 +95,7 @@ func (p *WsPack) ClosePack() {
 		config.Logger.Error(err.Error())
 	}
 
-	connectAction.CloseWsConn(p.conn.WsConn, config.WS_CONN_TYPE_CHEAT, p.form)
+	connectAction.CloseWsConn(p.conn.WsConn, config.WS_CONN_TYPE_USER, p.form)
 }
 
 // ws pack ping

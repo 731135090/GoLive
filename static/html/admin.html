@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>用户端</title>
+    <title>客服端</title>
     <script src="../js/vue.dev.js"></script>
     <script src="../css/style.css"></script>
 </head>
@@ -28,7 +28,7 @@
     var app = new Vue({
         el: '#app',
         data: {
-            wsUrl: "ws://127.0.0.1:8080/ws/cheat?client=js&version=1.0",
+            wsUrl: "ws://127.0.0.1:8080/admin/ws/cheat?client=js&version=1.0",
             ws: {},
             messages: [],
             preMessage: {},
@@ -94,8 +94,7 @@
                     action: "msg",
                     msg: this.content,
                     type: "text",
-                    version: Date.now(),
-                    to:"900150983cd24fb0d6963f7d28e17f72",
+                    version: Date.now()
                 };
                 this.ws.send(JSON.stringify(message));
                 // todo 后续增加 ack 验证

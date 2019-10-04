@@ -9,4 +9,7 @@ func init() {
     beego.Router("/", &controllers.BaseController{})
 
     beego.Router("/ws/cheat", &controllers.WebSocketController{})
+
+
+    beego.Router("/admin/ws/cheat", &controllers.AdminWsController{})
 }

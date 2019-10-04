@@ -2,3 +2,9 @@ app_name: GoLive
 listen_ip: 0.0.0.0
 http_port: 8080
 run_level: dev
+
+mysql:
+  hosts: 111.231.197.68
+  port: 3306
+  user: root
+  passowrd: 0eHTyJVg5E(F
