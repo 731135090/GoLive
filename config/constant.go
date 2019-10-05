@@ -9,7 +9,7 @@ const (
 )
 
 const (
-	WS_CONN_TYPE_USER    = iota //用户链接
+	WS_CONN_TYPE_USER     = iota //用户链接
 	WS_CONN_TYPE_CUSTOMER        //客服链接
 )
 
@@ -26,3 +26,9 @@ const (
 	WS_MES_TYPE_IMG   = "img"   //信息类型：图片
 	WS_MES_TYPE_VOICE = "voice" //信息类型：声音
 )
+
+var AllowMessType = map[string]bool{
+	WS_MES_TYPE_TEXT:  true,
+	WS_MES_TYPE_IMG:   true,
+	WS_MES_TYPE_VOICE: true,
+}

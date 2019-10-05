@@ -19,9 +19,8 @@ type Message struct {
 }
 type WsPack struct {
 	conn     *connectAction.WsConnect
-	form     string //pack form
-	to       string //pack to
-	packType int    //pack type
+	sender   string //pack form
+	receiver string //pack to
 	data     []byte
 }
 
@@ -40,10 +39,9 @@ func init() {
 }
 
 // new ws pack
-func NewWsPack(conn *websocket.Conn, packType int, data []byte) *WsPack {
+func NewWsPack(conn *websocket.Conn, connType uint8, data []byte) *WsPack {
 	pack := new(WsPack)
-	pack.conn = connectAction.NewWsConn(conn)
-	pack.packType = packType
+	pack.conn = connectAction.NewWsConn(conn, connType)
 	pack.data = data
 	return pack
 }
@@ -52,16 +50,26 @@ func NewWsPack(conn *websocket.Conn, packType int, data []byte) *WsPack {
 func (p *WsPack) Parse() {
 	jsonObj, err := json.Unmarshal(p.data)
 	if err != nil {
+		config.Logger.Error(err.Error())
 		return
 	}
 	action := json.GetString(jsonObj, "action")
-	//msg := json.GetString(jsonObj, "msg")
-
-	switch action {
-	case config.WS_PACK_ACTION_INIT:
-		p.InitPack()
-	case config.WS_PACK_ACTION_PING:
+	if action == config.WS_PACK_ACTION_PING {
 		p.PingPack()
+		return
+	}
+	p.sender = json.GetString(jsonObj, "sender")
+	if p.sender == "" {
+		config.Logger.Warn("sender is empty")
+		return
+	}
+	p.receiver = json.GetString(jsonObj, "receiver")
+	if p.receiver == "" {
+		config.Logger.Warn("receiver is empty")
+		return
+	}
+	p.InitPack()
+	switch action {
 	case config.WS_PACK_ACTION_CLOSE:
 		p.ClosePack()
 	case config.WS_PACK_ACTION_MSG:
@@ -70,10 +78,13 @@ func (p *WsPack) Parse() {
 }
 
 func (p *WsPack) InitPack() {
-	if connectAction.WsConnMap[config.WS_CONN_TYPE_USER][p.form] == nil {
-		connectAction.WsConnMap[config.WS_CONN_TYPE_USER][p.form] = make(map[*websocket.Conn]bool)
+	if connectAction.WsConnMap[p.conn.ConnType][p.sender] == nil {
+		connectAction.WsConnMap[p.conn.ConnType][p.sender] = make(map[*websocket.Conn]bool)
 	}
-	connectAction.WsConnMap[config.WS_CONN_TYPE_USER][p.form][p.conn.WsConn] = true
+
+	if _, ok := connectAction.WsConnMap[p.conn.ConnType][p.sender][p.conn.WsConn]; !ok {
+		connectAction.WsConnMap[p.conn.ConnType][p.sender][p.conn.WsConn] = true
+	}
 }
 
 //ws pack close
@@ -90,12 +101,7 @@ func (p *WsPack) ClosePack() {
 	}
 	p.conn.WsConn.WriteMessage(websocket.TextMessage, msg)
 
-	err = p.conn.WsConn.Close()
-	if err != nil {
-		config.Logger.Error(err.Error())
-	}
-
-	connectAction.CloseWsConn(p.conn.WsConn, config.WS_CONN_TYPE_USER, p.form)
+	connectAction.CloseWsConn(p.conn.WsConn, config.WS_CONN_TYPE_USER, p.sender)
 }
 
 // ws pack ping
@@ -115,15 +121,38 @@ func (p *WsPack) PingPack() {
 
 func (p *WsPack) MsgPack(data *simplejson.Json) {
 	content := json.GetString(data, "msg")
+	msgType := json.GetString(data, "type")
+	if _, ok := config.AllowMessType[msgType]; !ok {
+		config.Logger.Warn("msg type is error")
+		return
+	}
 	message := Message{
 		Msg:     content,
 		Action:  config.WS_PACK_ACTION_MSG,
-		MsgType: config.WS_MES_TYPE_TEXT,
+		MsgType: msgType,
 		Time:    timer.GetNowDate(),
 	}
 	msg, err := json.Marshal(message)
 	if err != nil {
 		config.Logger.Error(err.Error())
+		return
 	}
-	p.conn.WsConn.WriteMessage(websocket.TextMessage, msg)
+	receiverConnMap, ok := connectAction.WsConnMap[getReceiverConnType(p.conn.ConnType)][p.receiver]
+	if ok {
+		for conn, _ := range receiverConnMap {
+			conn.WriteMessage(websocket.TextMessage, msg)
+		}
+	} else {
+		// todo 客服不在线处理逻辑
+	}
+}
+
+func getReceiverConnType(senderConnType uint8) uint8 {
+	switch senderConnType {
+	case config.WS_CONN_TYPE_CUSTOMER:
+		return config.WS_CONN_TYPE_USER
+	case config.WS_CONN_TYPE_USER:
+		return config.WS_CONN_TYPE_CUSTOMER
+	}
+	return config.WS_CONN_TYPE_USER
 }

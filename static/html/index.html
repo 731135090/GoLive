@@ -29,6 +29,8 @@
         el: '#app',
         data: {
             wsUrl: "ws://127.0.0.1:8080/ws/cheat?client=js&version=1.0",
+            sender:"111",
+            receiver:"900150983cd24fb0d6963f7d28e17f72",
             ws: {},
             messages: [],
             preMessage: {},
@@ -76,7 +78,7 @@
             ping: function () {
                 const app = this;
                 setInterval(function() {
-                    //app.ws.send('{"action":"ping","msg":"ping","type":"text","to":"1"}');
+                    app.ws.send('{"action":"ping","msg":"ping","type":"text","to":"1"}');
                 }, 10000);
             },
             onclose: function (event) {
@@ -95,7 +97,8 @@
                     msg: this.content,
                     type: "text",
                     version: Date.now(),
-                    to:"900150983cd24fb0d6963f7d28e17f72",
+                    sender: this.sender,
+                    receiver: this.receiver,
                 };
                 this.ws.send(JSON.stringify(message));
                 // todo 后续增加 ack 验证

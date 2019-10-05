@@ -26,9 +26,9 @@ func (c *WebSocketController) Get() {
 	access(&c.BaseController, config.WS_CONN_TYPE_USER)
 }
 func (c *AdminWsController) Get() {
-	access(&c.BaseController, config.WS_CONN_TYPE_USER)
+	access(&c.BaseController, config.WS_CONN_TYPE_CUSTOMER)
 }
-func access(c *BaseController, connType int) {
+func access(c *BaseController, connType uint8) {
 	header := http.Header{}
 	header.Add("Server", "tomcat")
 
